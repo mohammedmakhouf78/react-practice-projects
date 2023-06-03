@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useRef } from "react";
 import { useEffect } from "react";
 
 export default function Rtc() {
@@ -15,22 +17,52 @@ export default function Rtc() {
         9. Obtain a URL blob from the remote stream.
         10. Use the obtained URL blob to play the remote peer’s audio and/or video.
      */
+    const videoConstraints = {
+        qvga: {
+            video: {
+                mandatory: {
+                    maxWidth: 320,
+                    maxHeight: 240
+                }
+            }
+        },
+        vga: {
+            video: {
+                mandatory: {
+                    maxWidth: 640,
+                    maxHeight: 480
+                }
+            }
+        },
+        hd: {
+            video: {
+                mandatory: {
+                    maxWidth: 1280,
+                    maxHeight: 960
+                }
+            }
+        },
+    }
+    const videoRef = useRef(null)
+    const [videoConstraint, setVideoConstraint] = useState(videoConstraints.qvga)
+
     function successCallback(stream) {
         console.log(stream);
+        window.stream = stream
+
+        videoRef.current.srcObject = stream
+
+        videoRef.current.play()
     }
     function errorCallback(error) {
-        console.log(error);
+        console.log("navigator.getUserMedia error: ", error);
     }
     useEffect(() => {
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia
             || navigator.mozGetUserMedia;
 
-        var constraints = { audio: true, video: false };
-
-        // var video = document.querySelector("video");
-
-        navigator.getUserMedia(constraints, successCallback, errorCallback);
-    })
+        navigator.getUserMedia(videoConstraint, successCallback, errorCallback);
+    }, [videoConstraint])
 
 
     return (
@@ -39,7 +71,13 @@ export default function Rtc() {
             <p>With this example, we simply call <code>getUserMedia()</code> {`and display
                 the received stream inside an HTML5 <video> element`}</p>
             <p>View page source to access both HTML and JavaScript code...</p>
-            <video autoPlay></video>
+            <div>
+                <button onClick={() => setVideoConstraint(videoConstraints.hd)}>Hd</button>
+                <button onClick={() => setVideoConstraint(videoConstraints.vga)}>VGA</button>
+                <button onClick={() => setVideoConstraint(videoConstraints.qvga)}>QVGA</button>
+            </div>
+
+            <video autoPlay ref={videoRef}></video>
         </div>
     )
 }
