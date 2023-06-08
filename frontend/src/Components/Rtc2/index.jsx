@@ -24,19 +24,17 @@ export default function Rtc() {
         console.log("At time: " + (performance.now() / 1000).toFixed(3) + " --> " + text);
     }
 
-    function successCallback(stream) {
-        log("Received local stream");
-        localVideoRef.current.srcObject = stream
-        callButtonRef.current.disabled = false
-    }
-
     function start() {
         log("Requesting local stream");
         startButtonRef.current.disabled = true
 
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-        navigator.getUserMedia({ audio: true, video: true }, successCallback, function (error) {
+        navigator.getUserMedia({ audio: true, video: false }, function (stream) {
+            localVideoRef.current.srcObject = stream
+            callButtonRef.current.disabled = false
+            localStream = stream
+        }, function (error) {
             log("navigator.getUserMedia error: ", error);
         })
     }
@@ -47,6 +45,7 @@ export default function Rtc() {
         log("Starting call");
 
         if (navigator.webkitGetUserMedia) {
+            console.log(webkitRTCPeerConnection);
             RTCPeerConnection = webkitRTCPeerConnection;
             // Firefox
         } else if (navigator.mozGetUserMedia) {
@@ -136,10 +135,10 @@ export default function Rtc() {
                 <tbody>
                     <tr>
                         <td>
-                            <video id="localVideo" autoPlay></video>
+                            <video id="localVideo" autoPlay ref={localVideoRef}></video>
                         </td>
                         <td>
-                            <video id="remoteVideo" autoPlay></video>
+                            <video id="remoteVideo" autoPlay ref={remoteVideoRef}></video>
                         </td>
                     </tr>
                     <tr>
